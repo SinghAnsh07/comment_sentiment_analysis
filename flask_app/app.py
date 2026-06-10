@@ -9,6 +9,7 @@ import io
 import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import mlflow
+import os
 import numpy as np
 import joblib
 import re
@@ -53,7 +54,7 @@ def preprocess_comment(comment):
 # Load the model and vectorizer from the model registry and local storage
 def load_model_and_vectorizer(model_name, model_version, vectorizer_path):
     # Set MLflow tracking URI to your server
-    mlflow.set_tracking_uri("http://ec2-54-196-109-131.compute-1.amazonaws.com:5000/")  # Replace with your MLflow tracking URI
+    mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db"))  # Replace with your MLflow tracking URI
     client = MlflowClient()
     model_uri = f"models:/{model_name}/{model_version}"
     model = mlflow.pyfunc.load_model(model_uri)

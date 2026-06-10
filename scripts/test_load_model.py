@@ -1,9 +1,10 @@
 import mlflow.pyfunc
+import os
 import pytest
 from mlflow.tracking import MlflowClient
 
 # Set your remote tracking URI
-mlflow.set_tracking_uri("http://ec2-54-196-109-131.compute-1.amazonaws.com:5000/")
+mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db"))
 
 @pytest.mark.parametrize("model_name, stage", [
     ("yt_chrome_plugin_model", "staging"),])
