@@ -7,6 +7,11 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Allows the workflow to push DVC lock changes back to the repository
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      MLFLOW_TRACKING_URI: sqlite:///mlflow.db
 
     steps:
       - name: Checkout code
@@ -30,20 +35,11 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run pipeline
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           dvc repro
 
       - name: Push DVC-tracked data to remote
-        if: ${{ secrets.AWS_ACCESS_KEY_ID != '' }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
+        if: ${{ env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           dvc push
 
@@ -73,78 +69,58 @@ jobs:
           pip install pytest
 
       - name: Run model loading test
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           pytest scripts/test_load_model.py
 
       - name: Run model signature test
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           pytest scripts/test_model_signature.py
 
       - name: Run model performance test
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: |
           pytest scripts/test_model_performance.py
 
       - name: Promote model to production
         if: ${{ success() }}
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
-          MLFLOW_TRACKING_URI: sqlite:///mlflow.db
         run: python scripts/promote_model.py
 
       - name: Login to AWS ECR
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 390844758498.dkr.ecr.us-east-1.amazonaws.com
 
       - name: Build Docker image
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           docker build -t yt-chrome-plugin .
 
       - name: Tag Docker image
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           docker tag yt-chrome-plugin:latest 390844758498.dkr.ecr.us-east-1.amazonaws.com/yt-chrome-plugin:latest
 
       - name: Push Docker image to AWS ECR
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           docker push 390844758498.dkr.ecr.us-east-1.amazonaws.com/yt-chrome-plugin:latest
 
       - name: Zip files for deployment
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           zip -r deployment.zip appspec.yml deploy/scripts/install_dependencies.sh deploy/scripts/start_docker.sh
 
       - name: Upload ZIP to S3
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
           aws s3 cp deployment.zip s3://campusxcodedeploybucket/deployment.zip
 
       - name: Deploy to AWS CodeDeploy
-        if: ${{ success() && secrets.AWS_ACCESS_KEY_ID != '' }}
+        if: ${{ success() && env.AWS_ACCESS_KEY_ID != '' }}
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
           aws deploy create-deployment \
             --application-name YTChromePlugin \
             --deployment-config-name CodeDeployDefault.OneAtATime \
