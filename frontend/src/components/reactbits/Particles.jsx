@@ -120,12 +120,16 @@ const Particles = ({
     camera.position.set(0, 0, cameraDistance);
 
     const resize = () => {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const width = container.clientWidth || window.innerWidth;
+      const height = container.clientHeight || window.innerHeight;
       renderer.setSize(width, height);
       camera.perspective({ aspect: gl.canvas.width / gl.canvas.height });
     };
-    window.addEventListener('resize', resize, false);
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+    });
+    resizeObserver.observe(container);
     resize();
 
     const handleMouseMove = e => {
@@ -214,7 +218,7 @@ const Particles = ({
     animationFrameId = requestAnimationFrame(update);
 
     return () => {
-      window.removeEventListener('resize', resize);
+      resizeObserver.disconnect();
       if (moveParticlesOnHover) {
         container.removeEventListener('mousemove', handleMouseMove);
       }

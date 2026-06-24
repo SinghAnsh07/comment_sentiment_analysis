@@ -257,7 +257,7 @@ function App() {
   return (
     <div className="relative min-h-screen bg-[#0B0F19] text-white overflow-x-hidden">
       {/* Background Particles Wrapper */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="fixed inset-0 z-0 pointer-events-none w-screen h-screen" style={{ width: '100vw', height: '100vh' }}>
         <Particles
           particleCount={180}
           particleSpread={10}
@@ -268,7 +268,7 @@ function App() {
           alphaParticles={true}
           particleBaseSize={80}
           sizeRandomness={0.7}
-          className="absolute inset-0"
+          className="absolute inset-0 w-full h-full"
         />
       </div>
 
