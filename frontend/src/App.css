@@ -647,3 +647,60 @@ label {
   -webkit-text-fill-color: transparent;
   color: transparent !important;
 }
+
+/* Core Layout Positioning & Sizing Utilities */
+.fixed {
+  position: fixed !important;
+}
+
+.absolute {
+  position: absolute !important;
+}
+
+.inset-0 {
+  top: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+}
+
+.z-0 {
+  z-index: 0 !important;
+}
+
+.z-10 {
+  z-index: 10 !important;
+}
+
+.z-99 {
+  z-index: 99 !important;
+}
+
+.pointer-events-none {
+  pointer-events: none !important;
+}
+
+.w-screen {
+  width: 100vw !important;
+}
+
+.h-screen {
+  height: 100vh !important;
+}
+
+.w-full {
+  width: 100% !important;
+}
+
+.h-full {
+  height: 100% !important;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden !important;
+}
+
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
