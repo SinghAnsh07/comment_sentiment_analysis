@@ -61,9 +61,17 @@ def load_model_and_vectorizer(model_name, model_version, vectorizer_path):
     # Set MLflow tracking URI to your server
     db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../mlflow.db"))
     mlflow.set_tracking_uri(os.environ.get("MLFLOW_TRACKING_URI", f"sqlite:///{db_path}"))  # Replace with your MLflow tracking URI
-    client = MlflowClient()
-    model_uri = f"models:/{model_name}/{model_version}"
-    model = mlflow.pyfunc.load_model(model_uri)
+    
+    try:
+        client = MlflowClient()
+        model_uri = f"models:/{model_name}/{model_version}"
+        model = mlflow.pyfunc.load_model(model_uri)
+        print("Model loaded successfully from MLflow model registry.")
+    except Exception as e:
+        print(f"MLflow model registry load failed: {e}. Falling back to local pickle file.")
+        local_model_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../lgbm_model.pkl"))
+        model = joblib.load(local_model_path)
+        
     vectorizer = joblib.load(vectorizer_path)  # Load the vectorizer
     return model, vectorizer
 
@@ -337,4 +345,7 @@ def generate_trend_graph():
         return jsonify({"error": f"Trend graph generation failed: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    # Turn off debug mode in production (if PORT is set by cloud hosts)
+    debug_mode = os.environ.get("PORT") is None
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
