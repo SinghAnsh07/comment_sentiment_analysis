@@ -18,8 +18,13 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 from mlflow.tracking import MlflowClient
 import matplotlib.dates as mdates
+from youtube_comment_downloader import YoutubeCommentDownloader
+import itertools
+import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder=os.path.abspath(os.path.join(os.path.dirname(__file__), '../frontend/dist')), 
+            static_url_path='/')
 CORS(app)  # Enable CORS for all routes
 
 # Define the preprocessing function
@@ -68,7 +73,39 @@ model, vectorizer = load_model_and_vectorizer("yt_chrome_plugin_model", "1", vec
 
 @app.route('/')
 def home():
-    return "Welcome to our flask api"
+    return send_file(os.path.join(app.static_folder, 'index.html'))
+
+@app.route('/fetch_comments', methods=['POST'])
+def fetch_comments():
+    data = request.json
+    url = data.get('youtube_url')
+    limit = data.get('limit', 100)
+    
+    if not url:
+        return jsonify({"error": "No YouTube URL provided"}), 400
+        
+    try:
+        downloader = YoutubeCommentDownloader()
+        comments_iter = downloader.get_comments_from_url(url)
+        comments = []
+        for c in itertools.islice(comments_iter, limit):
+            # Parse timestamp
+            timestamp_str = ""
+            if 'time_parsed' in c:
+                dt = datetime.datetime.fromtimestamp(c['time_parsed'])
+                timestamp_str = dt.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                timestamp_str = c.get('time', '')
+            
+            comments.append({
+                "text": c.get('text', ''),
+                "timestamp": timestamp_str,
+                "author": c.get('author', ''),
+                "votes": str(c.get('votes', 0))
+            })
+        return jsonify({"comments": comments})
+    except Exception as e:
+        return jsonify({"error": f"Failed to fetch comments: {str(e)}"}), 500
 
 @app.route('/predict_with_timestamps', methods=['POST'])
 def predict_with_timestamps():
