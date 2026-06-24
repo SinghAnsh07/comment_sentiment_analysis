@@ -274,23 +274,23 @@ function App() {
 
       {/* ClickSpark Interactive Overlay */}
       <ClickSpark sparkColor="rgba(99, 102, 241, 0.7)" sparkSize={10} sparkRadius={22} sparkCount={10}>
-        <div className="relative z-10 min-h-screen py-10 px-4 md:px-8 max-w-7xl mx-auto animate-fade-in">
+        <div className="relative z-10 min-h-screen pt-4 pb-12 px-4 md:px-8 max-w-7xl mx-auto animate-fade-in">
           {/* Header */}
-          <header className="text-center mb-12">
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-4">
+          <header className="text-center mb-6">
+            <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-3">
               <Sparkles className="w-4 h-4" />
               <span className="text-xs font-semibold uppercase tracking-wider">
                 <ShinyText text="Advanced NLP & MLOps System" speed={3} color="#818cf8" shineColor="#ffffff" />
               </span>
             </div>
             
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-3">
               <BlurText 
                 text="YouTube Comment Sentiment Analyzer" 
                 delay={80} 
                 animateBy="words" 
                 direction="top" 
-                className="text-4xl md:text-6xl font-extrabold tracking-tight text-center bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400"
+                className="blur-text-gradient text-4xl md:text-6xl font-extrabold tracking-tight text-center"
               />
             </div>
             

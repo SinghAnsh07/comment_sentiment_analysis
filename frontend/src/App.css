@@ -632,3 +632,18 @@ label {
 .object-contain {
   object-fit: contain;
 }
+
+/* Blur Text Gradient inheritance fix and center alignment */
+.blur-text-gradient {
+  display: flex !important;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.blur-text-gradient span {
+  background: linear-gradient(to right, #818CF8, #C084FC, #F472B6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent !important;
+}
