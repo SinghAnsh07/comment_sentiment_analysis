@@ -88,8 +88,12 @@ def predict_with_timestamps():
         # Transform comments using the vectorizer
         transformed_comments = vectorizer.transform(preprocessed_comments)
         
+        # Convert to pandas DataFrame to match MLflow model signature requirements
+        feature_names = vectorizer.get_feature_names_out()
+        input_df = pd.DataFrame(transformed_comments.toarray(), columns=feature_names)
+        
         # Make predictions
-        predictions = model.predict(transformed_comments).tolist()  # Convert to list
+        predictions = model.predict(input_df).tolist()  # Convert to list
         
         # Convert predictions to strings for consistency
         predictions = [str(pred) for pred in predictions]
@@ -115,8 +119,12 @@ def predict():
         # Transform comments using the vectorizer
         transformed_comments = vectorizer.transform(preprocessed_comments)
         
+        # Convert to pandas DataFrame to match MLflow model signature requirements
+        feature_names = vectorizer.get_feature_names_out()
+        input_df = pd.DataFrame(transformed_comments.toarray(), columns=feature_names)
+        
         # Make predictions
-        predictions = model.predict(transformed_comments).tolist()  # Convert to list
+        predictions = model.predict(input_df).tolist()  # Convert to list
         
         # Convert predictions to strings for consistency
         predictions = [str(pred) for pred in predictions]
